@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Camera, Clock, Music, Star, Sparkles } from 'lucide-react';
+import { Camera, Clock, Music, Star, Sparkles } from 'lucide-react';
 
 // Passcode Screen Component (moved outside to prevent re-creation)
 const PasscodeScreen = ({ 
@@ -140,7 +140,6 @@ export default function MonthsaryPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [mouseTrail, setMouseTrail] = useState<Array<{id: number, x: number, y: number, timestamp: number}>>([]);
-  const [windowSize, setWindowSize] = useState({ width: 800, height: 600 });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [isWrongPasscode, setIsWrongPasscode] = useState(false);
@@ -242,7 +241,6 @@ export default function MonthsaryPage() {
       
       // Calculate remaining time components
       const totalMs = now.getTime() - startDate.getTime();
-      const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const seconds = now.getSeconds();
@@ -261,20 +259,6 @@ export default function MonthsaryPage() {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
-
-  // Window size effect
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-      
-      const handleResize = () => {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-      };
-      
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
 
   // Handle passcode submission
   const handlePasscodeSubmit = (e: React.FormEvent) => {
@@ -308,50 +292,6 @@ export default function MonthsaryPage() {
     return <PasscodeScreen passcode={passcode} setPasscode={setPasscode} isWrongPasscode={isWrongPasscode} handlePasscodeSubmit={handlePasscodeSubmit} />;
   }
 
-  // Floating hearts animation
-  const FloatingHeart = ({ delay, index, windowSize }: { delay: number; index: number; windowSize: {width: number, height: number} }) => {
-    const [positions, setPositions] = useState({
-      startX: (windowSize.width / 6) * (index + 1),
-      endX: (windowSize.width / 6) * (index + 1)
-    });
-    
-    // Set random positions only on client side to avoid hydration mismatch
-    useEffect(() => {
-      const startX = (windowSize.width / 6) * (index + 1) + (Math.random() - 0.5) * 100;
-      const endX = startX + (Math.random() - 0.5) * 200;
-      setPositions({ startX, endX });
-    }, [index, windowSize.width]);
-    
-    return (
-      <motion.div
-        className="absolute text-pink-300 text-xl pointer-events-none select-none"
-        initial={{ 
-          x: positions.startX,
-          y: windowSize.height + 20,
-          opacity: 0,
-          rotate: 0,
-          scale: 0.8
-        }}
-        animate={{
-          y: -100,
-          x: positions.endX,
-          opacity: [0, 0.7, 0.5, 0],
-          rotate: [0, 10, -10, 0],
-          scale: [0.8, 1, 1.1, 0.9]
-        }}
-        transition={{
-          duration: 12,
-          delay,
-          repeat: Infinity,
-          ease: "easeInOut",
-          times: [0, 0.2, 0.8, 1]
-        }}
-      >
-        💕
-      </motion.div>
-    );
-  };
-
   // Mouse trail particle component
   const MouseTrailParticle = ({ x, y, index, id, timestamp }: { x: number, y: number, index: number, id: number, timestamp: number }) => {
     const age = (Date.now() - timestamp) / 1000; // Age in seconds
@@ -381,65 +321,6 @@ export default function MonthsaryPage() {
             boxShadow: '0 0 8px rgba(236, 72, 153, 0.4)'
           }}
         />
-      </motion.div>
-    );
-  };
-
-  // Background hearts particle system
-  const BackgroundHeart = ({ delay, index, windowSize }: { delay: number; index: number; windowSize: {width: number, height: number} }) => {
-    const [heartConfig, setHeartConfig] = useState({
-      startX: 400,
-      endX: 400,
-      duration: 20,
-      heartSize: 0.75,
-      opacity: 0.15,
-      heartEmoji: '💕'
-    });
-    
-    // Set random values only on client side to avoid hydration mismatch
-    useEffect(() => {
-      const hearts = ['💕', '💖', '💝', '💗', '💓', '💞'];
-      setHeartConfig({
-        startX: Math.random() * windowSize.width,
-        endX: Math.random() * windowSize.width + (Math.random() - 0.5) * 300,
-        duration: 15 + Math.random() * 10,
-        heartSize: 0.5 + Math.random() * 0.5,
-        opacity: 0.1 + Math.random() * 0.15,
-        heartEmoji: hearts[index % hearts.length]
-      });
-    }, [index, windowSize.width]);
-    
-    return (
-      <motion.div
-        className="absolute pointer-events-none select-none"
-        style={{ 
-          fontSize: `${heartConfig.heartSize}rem`,
-          color: `rgba(236, 72, 153, ${heartConfig.opacity})`,
-          filter: 'blur(0.5px)'
-        }}
-        initial={{ 
-          x: heartConfig.startX,
-          y: windowSize.height + 50,
-          opacity: 0,
-          rotate: 0,
-          scale: 0.5
-        }}
-        animate={{
-          y: -100,
-          x: heartConfig.endX,
-          opacity: [0, heartConfig.opacity, heartConfig.opacity * 0.8, 0],
-          rotate: [0, 180, 360],
-          scale: [0.5, heartConfig.heartSize, heartConfig.heartSize * 1.2, 0.3]
-        }}
-        transition={{
-          duration: heartConfig.duration,
-          delay,
-          repeat: Infinity,
-          ease: "easeInOut",
-          times: [0, 0.3, 0.7, 1]
-        }}
-      >
-        {heartConfig.heartEmoji}
       </motion.div>
     );
   };
@@ -594,17 +475,17 @@ export default function MonthsaryPage() {
                 My Dearest Love,
               </p>
               <p className="mb-4">
-                From your presence, I am always reminded how I've already won in life. 
-                From the moment I wake up to when I fall asleep, you're the first and last thing on my mind. 
+                From your presence, I am always reminded how I&apos;ve already won in life. 
+                From the moment I wake up to when I fall asleep, you&apos;re the first and last thing on my mind. 
                 Your smile brightens even my darkest days, and your laughter is the most beautiful sound in the world.
               </p>
               <p className="mb-4">
                 I love how you act like a baby around me. You make me want to be a better person, 
-                and I'm so blessed to have you in my life. Thank you for being my partner, my best friend, 
+                and I&apos;m so blessed to have you in my life. Thank you for being my partner, my best friend, 
                 and my greatest love.
               </p>
               <p className="mb-4">
-                Here's to many more months, years, and memories together. I love you more than words can express.
+                Here&apos;s to many more months, years, and memories together. I love you more than words can express.
               </p>
               <p className="text-right">
                 Forever yours,<br />
@@ -740,7 +621,7 @@ export default function MonthsaryPage() {
             <div className="text-center mb-6">
               <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-6 mb-4">
                 <h4 className="text-xl font-inter font-semibold text-gray-800 mb-2">
-                  🎵 "I want to grow old with you"
+                  🎵 &quot;I want to grow old with you&quot;
                 </h4>
                 <p className="text-gray-600 font-inter text-sm">
                   Our special song that always reminds me of you 💕
