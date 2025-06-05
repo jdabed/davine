@@ -240,7 +240,6 @@ export default function MonthsaryPage() {
       }
       
       // Calculate remaining time components
-      const totalMs = now.getTime() - startDate.getTime();
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const seconds = now.getSeconds();
@@ -731,7 +730,7 @@ export default function MonthsaryPage() {
               Made with endless love for you 💕
             </p>
             <p className="text-purple-600 font-inter text-sm mt-2">
-              Happy Monthsary, babu! Here's to forever with you ✨
+              Happy Monthsary, babu! Here&apos;s to forever with you ✨
             </p>
           </div>
         </motion.footer>
